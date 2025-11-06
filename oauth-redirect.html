@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecionando...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Redirecionando para o app...</h1>
+        <div class="spinner"></div>
+        <p>Aguarde enquanto você é redirecionado.</p>
+    </div>
+
+    <script>
+        // Pegar os parâmetros da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        const state = urlParams.get('state');
+
+        // Se houver erro, mostrar mensagem
+        if (error) {
+            document.querySelector('h1').textContent = 'Erro na autenticação';
+            document.querySelector('p').textContent = `Erro: ${error}`;
+            document.querySelector('.spinner').style.display = 'none';
+        } else if (code) {
+            // Construir a URL do deep link com o código
+            // O scheme 'app' deve corresponder ao configurado no app.json
+            const deepLink = `app://oauth?code=${encodeURIComponent(code)}${state ? '&state=' + encodeURIComponent(state) : ''}`;
+            
+            console.log('Redirecionando para:', deepLink);
+            
+            // Tentar abrir o app
+            window.location.href = deepLink;
+            
+            // Fallback: se não abrir em 2 segundos, mostrar instruções
+            setTimeout(() => {
+                document.querySelector('h1').textContent = 'App não encontrado';
+                document.querySelector('p').innerHTML = `
+                    Se o app não abriu automaticamente, <a href="${deepLink}" style="color: white; text-decoration: underline;">clique aqui</a>.
+                    <br><br>
+                    Ou copie este link: <code style="background: rgba(0,0,0,0.3); padding: 5px; border-radius: 5px;">${deepLink}</code>
+                `;
+                document.querySelector('.spinner').style.display = 'none';
+            }, 2000);
+        } else {
+            document.querySelector('h1').textContent = 'Parâmetros inválidos';
+            document.querySelector('p').textContent = 'Não foi possível processar a autenticação.';
+            document.querySelector('.spinner').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
+
